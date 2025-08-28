@@ -1,21 +1,21 @@
 # Matisse
 
-一个用 Jetpack Compose 实现的 Android 图片视频选择框架
+An Android image and video selection framework implemented with Jetpack Compose.
 
-- 解决了多个系统兼容性问题
-- 按需索取权限，遵循最佳用户实践
-- 完全用 Kotlin & Jetpack Compose 实现
-- 支持多种拍照策略，可以自由定义拍照逻辑
-- 支持自定义图片加载框架，可以自由定义加载逻辑
-- 支持同时选择图片和视频，或者单独选择两者之一
-- 支持精细自定义主题，提供了日夜间两套默认主题
+- Solved multiple system compatibility issues
+- Request permissions as needed, adhering to user best practices
+- Written entirely in Kotlin & Jetpack Compose
+- Supports multiple photo-taking strategies and can freely define photo-taking logic
+- Supports custom image loading framework, and can freely define loading logic
+- Supports selecting pictures and videos at the same time, or selecting one of them separately
+- Supports fine-grained custom themes, providing two default themes for day and night
 
-关联的文章：
+Related articles：
 
-- [Jetpack Compose 实现一个图片选择框架](https://juejin.cn/post/7108420791502372895)
-- [Android 13 媒体权限适配指南](https://juejin.cn/post/7159999910748618766)
+- [Jetpack Compose implements an image selection framework](https://juejin.cn/post/7108420791502372895)
+- [Android 13 Media Permission Adaptation Guide](https://juejin.cn/post/7159999910748618766)
 
-接入指南：[Wiki](https://github.com/leavesCZY/Matisse/wiki)
+Access Guide：[Wiki](https://github.com/leavesCZY/Matisse/wiki)
 
 |                                              日间主题                                              |                                              夜间主题                                              |                                             自定义主题                                              |
 |:----------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------:|
