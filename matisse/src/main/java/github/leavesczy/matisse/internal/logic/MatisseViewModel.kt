@@ -16,8 +16,10 @@ import github.leavesczy.matisse.MediaResource
 import github.leavesczy.matisse.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * @Author: leavesCZY
@@ -109,57 +111,70 @@ internal class MatisseViewModel(application: Application, matisse: Matisse) :
     )
 
     fun requestReadMediaPermissionResult(granted: Boolean) {
-        viewModelScope.launch(context = Dispatchers.Main.immediate) {
+        viewModelScope.launch(Dispatchers.Main.immediate) {
             showLoadingDialog()
             dismissPreviewPage()
             allMediaResources.clear()
+
             if (granted) {
-                val allResources = loadMediaResources()
-                allMediaResources.addAll(elements = allResources)
-                val collectBucket = defaultBucket.copy(resources = allResources)
-                val allMediaBuckets = buildList {
-                    add(
-                        element = MatisseMediaBucketInfo(
-                            bucketId = collectBucket.bucketId,
-                            bucketName = collectBucket.bucketName,
-                            size = collectBucket.resources.size,
-                            firstMedia = collectBucket.resources.firstOrNull()?.media
+                var firstBatchHandled = false
+
+                loadMediaResources().collect { batch ->
+                    allMediaResources.addAll(batch)
+
+                    val collectBucket = defaultBucket.copy(resources = allMediaResources)
+                    val allMediaBuckets = buildList {
+                        add(
+                            MatisseMediaBucketInfo(
+                                bucketId = collectBucket.bucketId,
+                                bucketName = collectBucket.bucketName,
+                                size = collectBucket.resources.size,
+                                firstMedia = collectBucket.resources.firstOrNull()?.media
+                            )
                         )
-                    )
-                    addAll(
-                        elements = allResources.groupBy {
-                            it.bucketId
-                        }.mapNotNull {
-                            val bucketId = it.key
-                            val resources = it.value
-                            val firstResource = resources.firstOrNull()
-                            val bucketName = firstResource?.bucketName
-                            if (bucketName.isNullOrBlank()) {
-                                null
-                            } else {
+                        addAll(
+                            allMediaResources.groupBy { it.bucketId }.mapNotNull { (bucketId, resources) ->
+                                val firstResource = resources.firstOrNull() ?: return@mapNotNull null
+                                if (firstResource.bucketName.isBlank()) return@mapNotNull null
                                 MatisseMediaBucketInfo(
                                     bucketId = bucketId,
-                                    bucketName = bucketName,
+                                    bucketName = firstResource.bucketName,
                                     size = resources.size,
                                     firstMedia = firstResource.media
                                 )
                             }
-                        }
+                        )
+                    }
+
+                    pageViewState = pageViewState.copy(
+                        mediaBucketsInfo = allMediaBuckets,
+                        selectedBucket = collectBucket
                     )
+                    defaultSelectedResources(allMediaResources)
+
+                    // dismiss loader when first items are ready
+                    if (!firstBatchHandled) {
+                        dismissLoadingDialog()
+                        firstBatchHandled = true
+                    }
                 }
-                pageViewState = pageViewState.copy(
-                    mediaBucketsInfo = allMediaBuckets,
-                    selectedBucket = collectBucket
-                )
-                defaultSelectedResources(allMediaResources = allResources)
+
+                // also dismiss if flow completes but no items
+                if (allMediaResources.isEmpty()) {
+                    dismissLoadingDialog()
+                }
+
             } else {
                 resetViewState()
                 showToast(id = R.string.matisse_read_media_permission_denied)
+                dismissLoadingDialog()
             }
+
             bottomBarViewState = buildBottomBarViewState()
-            dismissLoadingDialog()
         }
     }
+
+
 
     private fun defaultSelectedResources(allMediaResources: List<MatisseMediaExtend>) {
         val defaultSelectedMediaIds = if (mediaFilter == null || fastSelect) {
@@ -193,23 +208,18 @@ internal class MatisseViewModel(application: Application, matisse: Matisse) :
         }
     }
 
-    private suspend fun loadMediaResources(): List<MatisseMediaExtend> {
-        return withContext(context = Dispatchers.Default) {
-            val resourcesInfo = MediaProvider.loadResources(
-                context = context,
-                mediaType = mediaType
-            )
-            if (resourcesInfo.isNullOrEmpty()) {
-                emptyList()
-            } else {
-                resourcesInfo.mapNotNull {
+    fun loadMediaResources(): Flow<List<MatisseMediaExtend>> =
+        MediaProvider.loadResources(context = context, mediaType = mediaType)
+            .map { batch ->
+                batch.mapNotNull {
                     val media = MediaResource(
                         uri = it.uri,
                         path = it.path,
                         name = it.name,
                         mimeType = it.mimeType
                     )
-                    if (mediaFilter?.ignoreMedia(mediaResource = media) == true) {
+
+                    if (mediaFilter?.ignoreMedia(media) == true) {
                         null
                     } else {
                         MatisseMediaExtend(
@@ -217,13 +227,14 @@ internal class MatisseViewModel(application: Application, matisse: Matisse) :
                             bucketId = it.bucketId,
                             bucketName = it.bucketName,
                             media = media,
-                            selectState = mutableStateOf(value = unselectedEnabledMediaSelectState)
+                            selectState = mutableStateOf(unselectedEnabledMediaSelectState)
                         )
                     }
                 }
             }
-        }
-    }
+            .flowOn(Dispatchers.IO) // query & mapping happen in background
+
+
 
     private fun resetViewState() {
         pageViewState = pageViewState.copy(

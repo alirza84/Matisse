@@ -279,15 +279,15 @@ private fun MainPage(
                 )
             }
             Button(
-                text = "图片 + 视频",
+                text = "Photos + Videos",
                 onClick = imageAndVideo
             )
             Button(
-                text = "图片",
+                text = "Picture",
                 onClick = imageOnly
             )
             Button(
-                text = "视频",
+                text = "Video",
                 onClick = videoOnly
             )
             Button(
@@ -295,12 +295,12 @@ private fun MainPage(
                 onClick = gifAndMp4
             )
             Button(
-                text = "直接拍照",
+                text = "Take photos directly",
                 enabled = pageViewState.captureStrategy != MediaCaptureStrategy.Close,
                 onClick = takePicture
             )
             Button(
-                text = "切换主题",
+                text = "Switch Theme",
                 onClick = pageViewState.switchTheme
             )
             for (mediaResource in pageViewState.mediaList) {
