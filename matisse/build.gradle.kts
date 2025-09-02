@@ -26,7 +26,7 @@ dependencies {
     compileOnly(libs.glide.compose)
 }
 
-val matisseVersion = "2.2.1"
+val matisseVersion = "2.2.2"
 
 if (signingKeyId == null) {
     publishing {
@@ -44,16 +44,15 @@ if (signingKeyId == null) {
         signAllPublications()
         configure(platform = AndroidSingleVariantLibrary())
         coordinates(
-            groupId = "io.github.leavesczy",
+            groupId = "io.github.alirza84",
             artifactId = "matisse",
             version = matisseVersion
         )
         pom {
             name = "Matisse"
-            description =
-                "An Android Image and Video Selection Framework Implemented with Jetpack Compose"
+            description = "An Android Image and Video Selection Framework Implemented with Jetpack Compose"
             inceptionYear = "2025"
-            url = "https://github.com/leavesCZY/Matisse"
+            url = "https://github.com/alirza84/Matisse"
             licenses {
                 license {
                     name = "The Apache License, Version 2.0"
@@ -63,15 +62,15 @@ if (signingKeyId == null) {
             }
             developers {
                 developer {
-                    id = "leavesCZY"
-                    name = "leavesCZY"
-                    url = "https://github.com/leavesCZY"
+                    id = "alirza84"
+                    name = "alirza84"
+                    url = "https://github.com/alirza84"
                 }
             }
             scm {
-                url = "https://github.com/leavesCZY/Matisse"
-                connection = "scm:git:git://github.com/leavesCZY/Matisse.git"
-                developerConnection = "scm:git:ssh://git@github.com/leavesCZY/Matisse.git"
+                url = "https://github.com/alirza84/Matisse"
+                connection = "scm:git:git://github.com/alirza84/Matisse.git"
+                developerConnection = "scm:git:ssh://git@github.com/alirza84/Matisse.git"
             }
         }
     }
